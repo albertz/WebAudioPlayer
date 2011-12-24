@@ -83,7 +83,9 @@ $(document).ready(function() {
 
 	$("#player").jPlayer({
 		ready: function(ev) {
-			console.log("jPlayer ready");			
+			console.log("jPlayer ready");
+			var hashurl = window.location.hash.substr(1);
+			if(hashurl) content_url.value = hashurl;
 			updateContentUrl();
 		},
 		ended: function(ev) { nextSong(); },
