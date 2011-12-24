@@ -2,13 +2,21 @@
 <head>
 	<title>WebAudioPlayer</title>
 
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>    
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script type="text/javascript" src="jquery.xdomainajax.js"></script>
 	<script type="text/javascript" src="http://jplayer.org/2.1.0/js/jquery.jplayer.min.js"></script>
 	
 </head>
 
 <body>
+	<form action="javascript:updateContentUrl()">
+		Content URL:
+		<input type="text" id="content_url" size="60" value="http://mp3.hhe.cc/Red%20Hot%20Chili%20Peppers/">
+		<input type="submit" value="update">
+	</form>
+	<div id="content_state"></div>
 	<div id="player" class="jp-jplayer"></div>
+	<div id="content"></div>
 </body>
 
 <script type="text/javascript">
@@ -19,11 +27,37 @@ $(document).ready(function() {
 	$("#player").jPlayer({
 		ready: function(ev) {
 			console.log("jPlayer ready");
-
+			
+			updateContentUrl();			
 		},
 		swfPath: "http://www.jplayer.org/2.1.0/js"
 	});
+
 });
+
+function updateContentUrl() {
+	var url = content_url.value;
+	console.log("update content URL: " + url);
+
+	$("#content_state")
+		.text("loading " + url + " ...")
+		.css({"text-decoration":"blink", "color":"grey"});
+
+	$.ajax({
+		url: url,
+		type: "GET",
+		success: function(res) {
+			$("#content_state").text("success!");
+			$("#content").html(res.responseText);
+		},
+		fail: function() {
+			console.log("failed to load");
+			$("#content_state")
+				.text("failed to load")
+				.css("color","red");
+		}
+	});
+}
 
 </script>
 
