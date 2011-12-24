@@ -8,10 +8,23 @@
 </head>
 
 <body>
+	<div id="player" class="jp-jplayer"></div>
 </body>
 
 <script type="text/javascript">
-	
+
+$(document).ready(function() {
+	console.log("document ready");
+
+	$("#player").jPlayer({
+		ready: function(ev) {
+			console.log("jPlayer ready");
+
+		},
+		swfPath: "http://www.jplayer.org/2.1.0/js"
+	});
+});
+
 </script>
 
 </html>
