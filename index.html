@@ -83,10 +83,10 @@ $(document).ready(function() {
 
 	$("#player").jPlayer({
 		ready: function(ev) {
-			console.log("jPlayer ready");
-			
-			updateContentUrl();			
+			console.log("jPlayer ready");			
+			updateContentUrl();
 		},
+		ended: function(ev) { nextSong(); },
 		swfPath: "http://www.jplayer.org/2.1.0/js",
 		solution: "html",
 		supplied: "mp3"
@@ -125,6 +125,7 @@ function updateContentUrl() {
 				}).appendTo($("#content"));
 			});
 
+			nextSong();
 		},
 		fail: function() {
 			console.log("failed to load");
@@ -153,13 +154,20 @@ function onSongClick(song) {
 }
 
 function prevSong() {
-
+	var cur = $("a.song-selected");
+	if(cur[0]) {
+		var prev = cur.parent().prevAll().find("a")[0];
+		$(prev).click();
+	}
 }
 
 function nextSong() {
 	var cur = $("a.song-selected");
-	var next = cur.parent().nextAll().find("a")[0];
-
+	var next;
+	if(cur[0])
+		next = cur.parent().nextAll().find("a")[0];
+	else
+		next = $(".song")[0];
 	console.log("next: " + next.text);
 	$(next).click();
 }
