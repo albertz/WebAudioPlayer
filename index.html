@@ -24,8 +24,9 @@
 		Content URL:
 		<input type="text" id="content_url" size="60" value="http://mp3.hhe.cc/Red%20Hot%20Chili%20Peppers/">
 		<input type="submit" value="update">
+		<div id="content_state"></div>
 	</form>
-	<div id="content_state"></div>
+
 	<div id="player" class="jp-jplayer"></div>
 		<div id="jp_container_1" class="jp-audio">
 			<div class="jp-type-single">
@@ -110,7 +111,7 @@ function updateContentUrl() {
 		url: url,
 		type: "GET",
 		success: function(res) {
-			$("#content_state").text("success!");
+			$("#content_state").text("success, reading ...");
 
 			$(res.responseText).find("a").each(function() {
 				var linktext = $(this).text();
@@ -127,12 +128,25 @@ function updateContentUrl() {
 				}).appendTo($("#content"));
 			});
 
-			nextSong();
+			if(!$(".song")[0]) {
+				$("#content_state")
+					.text("no songs found!")
+					.css("color","red");
+			} else {
+				$("#content_state").text("");
+				nextSong();
+			}
 		},
-		fail: function() {
+		fail: function(xhr) {
 			console.log("failed to load");
 			$("#content_state")
-				.text("failed to load")
+				.text("failed to load: " + xhr.status)
+				.css("color","red");
+		},
+		error: function(xhr) {
+			console.log("error on load");
+			$("#content_state")
+				.text("failed to load: " + xhr.status + " - " + xhr.statusText)
 				.css("color","red");
 		}
 	});
@@ -157,10 +171,9 @@ function onSongClick(song) {
 
 function prevSong() {
 	var cur = $("a.song-selected");
-	if(cur[0]) {
-		var prev = cur.parent().prevAll().find("a")[0];
-		$(prev).click();
-	}
+	if(!cur[0]) return;
+	var prev = cur.parent().prevAll().find("a")[0];
+	$(prev).click();
 }
 
 function nextSong() {
@@ -170,6 +183,7 @@ function nextSong() {
 		next = cur.parent().nextAll().find("a")[0];
 	else
 		next = $(".song")[0];
+	if(!next) return;
 	console.log("next: " + next.text);
 	$(next).click();
 }
