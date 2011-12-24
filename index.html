@@ -21,6 +21,10 @@
 
 <script type="text/javascript">
 
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
 $(document).ready(function() {
 	console.log("document ready");
 
@@ -48,7 +52,21 @@ function updateContentUrl() {
 		type: "GET",
 		success: function(res) {
 			$("#content_state").text("success!");
-			$("#content").html(res.responseText);
+
+			$(res.responseText).find("a").each(function() {
+				var linktext = $(this).text();
+				var linkurl = url + $(this).attr("href");
+				if(!linkurl.endsWith(".mp3")) return;
+
+				console.log("found: " + linktext);
+				jQuery("<li>", {
+					html: jQuery("<a>", {
+						href: linkurl,
+						text: linktext
+					})
+				}).appendTo($("#content"));
+			});
+
 		},
 		fail: function() {
 			console.log("failed to load");
