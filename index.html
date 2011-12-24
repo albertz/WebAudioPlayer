@@ -77,8 +77,24 @@
 
 <script type="text/javascript">
 
+String.prototype.startsWith = function(prefix) {
+    return this.indexOf(prefix) === 0;
+};
+
 String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+String.prototype.urlJoin = function(s) {
+	if(s.match(/^[a-z]+:/i)) return s; // absolute
+	if(s.match(/^\/\//)) // protocol relative
+		return this.match(/^[a-z]+:/i) + s;
+	if(s.match(/^\//)) // server relative
+		return this.match(/^[a-z]+:\/*[^/]+/i) + s;
+	// directory relative
+	var m = this.match(/^[a-z]+:(\/*[^/]+\/)*/i); // get dir
+	if(m[1]) return m[0] + s;
+	return this + "/" + s; // there is no dir, just the server
 };
 
 $(document).ready(function() {
@@ -98,6 +114,11 @@ $(document).ready(function() {
 
 });
 
+function setContentUrl(url) {
+	content_url.value = url;
+	updateContentUrl();
+}
+
 function updateContentUrl() {
 	var url = content_url.value;
 	console.log("update content URL: " + url);
@@ -116,17 +137,26 @@ function updateContentUrl() {
 
 			$(res.responseText).find("a").each(function() {
 				var linktext = $(this).text();
-				var linkurl = url + $(this).attr("href");
-				if(!linkurl.endsWith(".mp3")) return;
-
-				jQuery("<li>", {
-					html: jQuery("<a>", {
-						href: linkurl,
-						text: linktext,
-						class: "song",
-						click: function(ev) { ev.preventDefault(); onSongClick($(this)); },
-					})
-				}).appendTo($("#content"));
+				var linkurl = url.urlJoin($(this).attr("href"));
+				if(linkurl.endsWith(".mp3")) {
+					jQuery("<li>", {
+						html: jQuery("<a>", {
+							href: linkurl,
+							text: linktext,
+							class: "song",
+							click: function(ev) { ev.preventDefault(); onSongClick($(this)); },
+						})
+					}).appendTo($("#content"));
+				}
+				else if(linkurl.endsWith("/") || linkurl.endsWith("/..")) {
+					jQuery("<li>", {
+						html: jQuery("<a>", {
+							href: linkurl,
+							text: linktext,
+							click: function(ev) { ev.preventDefault(); setContentUrl($(this).attr("href")); },
+						})
+					}).appendTo($("#content"));					
+				}
 			});
 
 			if(!$(".song")[0]) {
@@ -173,7 +203,7 @@ function onSongClick(song) {
 function prevSong() {
 	var cur = $("a.song-selected");
 	if(!cur[0]) return;
-	var prev = cur.parent().prevAll().find("a")[0];
+	var prev = cur.parent().prevAll().find("a.song")[0];
 	$(prev).click();
 }
 
@@ -181,7 +211,7 @@ function nextSong() {
 	var cur = $("a.song-selected");
 	var next;
 	if(cur[0])
-		next = cur.parent().nextAll().find("a")[0];
+		next = cur.parent().nextAll().find("a.song")[0];
 	else
 		next = $(".song")[0];
 	if(!next) return;
